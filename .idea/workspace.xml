@@ -20,12 +20,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ede64b04-92cb-4b07-9153-e5a7c2f96818" name="默认的" comment="">
-      <change afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/watcherTasks.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/server/main/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/server/main/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/xiaoshuo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/xiaoshuo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/pkg/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/config/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +57,7 @@
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
@@ -70,7 +70,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+    <property name="settings.editor.selected.configurable" value="watcher.settings" />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="2" />
@@ -90,10 +90,14 @@
     <integration-enabled>true</integration-enabled>
   </component>
   <component name="WindowStateProjectService">
-    <state x="461" y="164" key="SettingsEditor" timestamp="1603874037514">
+    <state x="614" y="293" key="EditFileWatcherDialog" timestamp="1603881184797">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1603874037514" />
+    <state x="614" y="293" key="EditFileWatcherDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1603881184797" />
+    <state x="461" y="164" key="SettingsEditor" timestamp="1603881185878">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1603881185878" />
     <state x="793" y="275" key="refactoring.ChangeSignatureDialog" timestamp="1603878970684">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
