@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/novelread"
 	"os"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
@@ -45,5 +46,5 @@ func initConfig() error {
 	return config.LoadFile(configFile)
 }
 func main() {
-	logrus.Println("启动成功")
+	novelread.NovelRead()
 }

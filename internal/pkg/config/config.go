@@ -20,6 +20,9 @@ type Config struct {
 		Name     string `toml:"name"`
 		MaxConn  int    `toml:"max_conn"`
 	} `toml:"database"`
+	FileAddress struct{
+		Address string `toml:"address"`
+	}`toml:"file_address"`
 }
 
 // Get 获得系统配置
