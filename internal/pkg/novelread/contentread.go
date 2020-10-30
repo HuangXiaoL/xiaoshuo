@@ -26,17 +26,22 @@ var (
 	traditional = map[int]string{0: "零", 1: "壹", 2: "贰", 3: "叁", 4: "肆", 5: "伍", 6: "陆", 7: "柒", 8: "捌", 9: "玖", 10: "拾", 11: "佰", 12: "仟"}
 
 	//章节 章节集回话 ----- 章节识别关键字
-	chapter = map[int]string{0: "章", 1: "节", 2: "集", 3: "回", 4: "话"}
+	chapter = map[int]string{0: "章", 1: "节", 2: "集", 3: "回", 4: "话", 5: " "}
 	//卷
 	reel = "卷"
 )
 
 //Chapter 小说结构
 type Chapter struct {
-	Title   string
-	Index   int
+	Titles  string
 	Volume  int
+	Index   int
 	Content string
+}
+
+//GetChapter 获取结构体
+func GetChapter() *Chapter {
+	return &Chapter{}
 }
 
 //TrimFile 小说文件处理
@@ -46,11 +51,24 @@ func TrimFile(filePath string) {
 		log.Println(err)
 	}
 	c := GetChapter()
+	var conts string
 	for _, v := range s {
-		lineTextDiscern(v, c)
+		cont, vnum, cnum, t := lineTextDiscern(v)
+		conts = conts + cont
+		if cnum != 0 {
+			c.Titles = t
+			c.Volume = vnum
+			c.Index = cnum
+			//c.Content = conts
+			conts = ""
+			fmt.Printf("%+v", c)
+		}
+
 	}
 	wg.Done()
 }
+
+//getFileContentAsStringLines 读取行
 func getFileContentAsStringLines(filePath string) ([]string, error) {
 	log.Printf("get file content as lines: %v", filePath)
 	result := []string{}
@@ -71,35 +89,19 @@ func getFileContentAsStringLines(filePath string) ([]string, error) {
 	return result, nil
 }
 
-func GetChapter() Chapter {
-	return Chapter{}
-}
-
 //lineTextDiscern 行文本识别
-func lineTextDiscern(line string, c Chapter) {
+func lineTextDiscern(line string) (string, int, int, string) {
 	b := lineRetractIsContent(line)
 	length := lineLength(line)
 	//赋值逻辑
-	if b {
-		c.Content = c.Content + strings.TrimSpace(line)
-	} else if length {
-		c.Content = c.Content + strings.TrimSpace(line)
-
-	} else {
-		v, ch, t := lineFindNumAtChapterAndVolume(line, 5)
-		if c.Volume != v {
-			c = GetChapter()
-			c.Volume = v
-		}
-		if c.Index != ch {
-			c = GetChapter()
-			c.Volume = v
-			c.Index = ch
-			c.Title = t
-		}
-
+	if b { //是否有缩进 有就返回为正文
+		return strings.TrimSpace(line), 0, 0, ""
+	} else if length { //长度是否超过80 有就返回为正文
+		return strings.TrimSpace(line), 0, 0, ""
 	}
-	fmt.Printf("%+v\n", c)
+	// 提取 卷号 ，章节号，章节名称
+	v, ch, t := lineFindNumAtChapterAndVolume(line, 5)
+	return "", v, ch, t
 
 }
 
