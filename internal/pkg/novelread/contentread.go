@@ -56,12 +56,12 @@ func TrimFile(filePath string) {
 		cont, vnum, cnum, t := lineTextDiscern(v)
 		conts = conts + cont
 		if cnum != 0 {
-			c.Titles = t
+			c.Titles = strings.Trim(t, "\n\r")
 			c.Volume = vnum
 			c.Index = cnum
 			//c.Content = conts
-			conts = ""
-			fmt.Printf("%+v", c)
+			//conts = ""
+			fmt.Printf("%+v\n", c)
 		}
 
 	}
@@ -153,11 +153,11 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	}
 	// 获取章值
 	if i := getNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //卷值
+		chapterNum, title = getChapterNum(line) //章值
 	} else if i := getSimplified(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //卷值
+		chapterNum, title = getChapterNum(line) //章值
 	} else if i := getTraditional(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //卷值
+		chapterNum, title = getChapterNum(line) //章值
 	}
 	t := ""
 	for _, v := range title {
@@ -241,10 +241,35 @@ func getVolumeNum(s string) int {
 	return 0
 }
 
+//TODO:需要拆分优化,循环判断太多了，需要拆分处理
 //getChapterNum 识别章数并提取
 func getChapterNum(s string) (int, []string) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
+		if strings.Contains(v, reel) { //判断是否有章节前缀
+			result := countSplit[k+1:]   //去掉章节前缀之后的
+			for rk, rv := range result { //循环卷之后的结果
+				for _, vv := range chapter {
+					if strings.Contains(rv, vv) { //章节集回话
+						stk := 0 //章节号起始
+						if rk >= 10 {
+							stk = rk - 10
+						}
+						edk := rk + 1                    //章节号结束
+						chapterResult := result[stk:edk] //截取卷前10以内的字符
+						title := result[edk:]
+						if i := getNumber(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+							return i, title
+						} else if i := getSimplified(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+							return int(i), title
+						} else if i := getTraditional(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+							return int(i), title
+						}
+					}
+				}
+			}
+		}
+
 		for _, vv := range chapter {
 			if strings.Contains(v, vv) {
 				stk := 0 //章节号起始
