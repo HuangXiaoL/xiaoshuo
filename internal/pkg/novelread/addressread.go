@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
 )
 
 var (
 	listFilePrefix = "  "
-	wg             sync.WaitGroup
+	//wg             sync.WaitGroup
 )
 
 //NovelRead 小说读取
@@ -23,12 +24,16 @@ func NovelRead() {
 	fileName := listAllFileByName(level, pathSeparator, srcDir)
 	for _, v := range fileName {
 		fileAddres := src + v
-		fmt.Println(fileAddres)
-		wg.Add(1)
-		go TrimFile(fileAddres)
-		wg.Wait()
+		file, err := os.Open(fileAddres)
+		if err != nil {
+			panic(err)
+		}
+		c, err := SplitChapter(file)
+		if err != nil {
+			logrus.Println(err)
+		}
+		fmt.Println(c)
 	}
-
 }
 
 // listAllFileByName 文件列表

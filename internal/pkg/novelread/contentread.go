@@ -1,9 +1,8 @@
 package novelread
 
 import (
-	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 	"unicode"
@@ -31,51 +30,29 @@ var (
 	reel = "卷"
 )
 
-//Chapter 小说结构
+//Chapter 小说章节内容的结构
 type Chapter struct {
-	Titles  string
 	Volume  int
 	Index   int
+	Titles  string
 	Content string
 }
 
 //GetChapter 获取结构体
-func GetChapter() *Chapter {
-	return &Chapter{}
+func GetChapter() Chapter {
+	return Chapter{}
 }
 
-//TrimFile 小说文件处理
-func TrimFile(filePath string) {
-	s, err := getFileContentAsStringLines(filePath)
+//SplitChapter 文本流入口
+func SplitChapter(input io.Reader) ([]Chapter, error) {
+	var (
+		//conts string
+		o = []Chapter{}
+		c = GetChapter()
+	)
+	b, err := ioutil.ReadAll(input)
 	if err != nil {
-		log.Println(err)
-	}
-	c := GetChapter()
-	var conts string
-	for _, v := range s {
-		cont, vnum, cnum, t := lineTextDiscern(v)
-		conts = conts + cont
-		if cnum != 0 {
-			c.Titles = strings.Trim(t, "\n\r")
-			c.Volume = vnum
-			c.Index = cnum
-			//c.Content = conts
-			//conts = ""
-			fmt.Printf("%+v\n", c)
-		}
-
-	}
-	wg.Done()
-}
-
-//getFileContentAsStringLines 读取行
-func getFileContentAsStringLines(filePath string) ([]string, error) {
-	log.Printf("get file content as lines: %v", filePath)
-	result := []string{}
-	b, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		log.Printf("read file: %v error: %v", filePath, err)
-		return result, err
+		return nil, err
 	}
 	s := string(b)
 	for _, lineStr := range strings.Split(s, "\n") {
@@ -83,10 +60,19 @@ func getFileContentAsStringLines(filePath string) ([]string, error) {
 		if lineStr == "" {
 			continue
 		}
-		result = append(result, lineStr)
+		_, vnum, cnum, t := lineTextDiscern(lineStr)
+		//conts = conts + cont
+		if cnum != 0 {
+			c.Titles = strings.Trim(t, "\n\r")
+			c.Volume = vnum
+			c.Index = cnum
+			//c.Content = conts
+			//conts = ""
+			o = append(o, c)
+		}
+
 	}
-	log.Printf("get file content as lines: %v, size: %v", filePath, len(result))
-	return result, nil
+	return o, nil
 }
 
 //lineTextDiscern 行文本识别
@@ -147,7 +133,7 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	if i := getNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		volumeNum = getVolumeNum(line) //卷值
 	} else if i := getSimplified(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		volumeNum = getVolumeNum(line) //卷值
+		volumeNum = getVolumeNum(line)
 	} else if i := getTraditional(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		volumeNum = getVolumeNum(line) //卷值
 	}
@@ -159,11 +145,55 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	} else if i := getTraditional(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		chapterNum, title = getChapterNum(line) //章值
 	}
+	//标题
 	t := ""
 	for _, v := range title {
 		t = t + v
 	}
 	return volumeNum, chapterNum, t
+}
+
+//getVolumeNum 卷号识别并且提取
+func getVolumeNum(s string) int {
+	countSplit := strings.Split(s, "")
+	for k, v := range countSplit {
+		if strings.Contains(v, reel) {
+			result := countSplit[:k+1]         //截取卷前10以内的字符
+			if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+				return i
+			} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+				return int(i)
+			} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+				return int(i)
+			}
+		}
+	}
+	return 0
+}
+
+//getChapterNum 识别章数并提取
+func getChapterNum(s string) (int, []string) {
+	countSplit := strings.Split(s, "")
+	for k, v := range countSplit {
+		for _, vv := range chapter {
+			if strings.Contains(v, vv) {
+				stk := 0 //章节号起始
+				if k >= 10 {
+					stk = k - 10
+				}
+				result := countSplit[stk:k] //截取卷前10以内的字符
+				title := countSplit[k+1:]
+				if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+					return i, title
+				} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+					return int(i), title
+				} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+					return int(i), title
+				}
+			}
+		}
+	}
+	return 0, nil
 }
 
 //getNumber 获取每行的阿拉伯数字
@@ -176,7 +206,6 @@ func getNumber(line []string) int {
 			}
 		}
 	}
-
 	if len(ss) != 0 { //每行的数字
 		i, _ := strconv.Atoi(ss)
 		return i
@@ -216,78 +245,4 @@ func getTraditional(line []string) int64 {
 		return num
 	}
 	return 0
-}
-
-//getVolumeNum 卷号识别并且提取
-func getVolumeNum(s string) int {
-	countSplit := strings.Split(s, "")
-	for k, v := range countSplit {
-		if strings.Contains(v, reel) {
-			stk := 0
-			if k >= 10 {
-				stk = k - 10
-			}
-			edk := k + 1
-			result := countSplit[stk:edk]      //截取卷前10以内的字符
-			if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return i
-			} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i)
-			} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i)
-			}
-		}
-	}
-	return 0
-}
-
-//TODO:需要拆分优化,循环判断太多了，需要拆分处理
-//getChapterNum 识别章数并提取
-func getChapterNum(s string) (int, []string) {
-	countSplit := strings.Split(s, "")
-	for k, v := range countSplit {
-		if strings.Contains(v, reel) { //判断是否有章节前缀
-			result := countSplit[k+1:]   //去掉章节前缀之后的
-			for rk, rv := range result { //循环卷之后的结果
-				for _, vv := range chapter {
-					if strings.Contains(rv, vv) { //章节集回话
-						stk := 0 //章节号起始
-						if rk >= 10 {
-							stk = rk - 10
-						}
-						edk := rk + 1                    //章节号结束
-						chapterResult := result[stk:edk] //截取卷前10以内的字符
-						title := result[edk:]
-						if i := getNumber(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-							return i, title
-						} else if i := getSimplified(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-							return int(i), title
-						} else if i := getTraditional(chapterResult); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-							return int(i), title
-						}
-					}
-				}
-			}
-		}
-
-		for _, vv := range chapter {
-			if strings.Contains(v, vv) {
-				stk := 0 //章节号起始
-				if k >= 10 {
-					stk = k - 10
-				}
-				edk := k + 1                  //章节号结束
-				result := countSplit[stk:edk] //截取卷前10以内的字符
-				title := countSplit[edk:]
-				if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return i, title
-				} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return int(i), title
-				} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return int(i), title
-				}
-			}
-		}
-	}
-	return 0, nil
 }
