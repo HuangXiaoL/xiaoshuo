@@ -116,9 +116,10 @@ func lineLength(line string) bool {
 //lineFindNumAtChapterAndVolume 在行里查找数字并且返回章卷的值
 func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	var (
-		volumeNum  int      // 卷 值
-		chapterNum int      // 章值
-		title      []string //标题值
+		volumeNum       int      // 卷 值
+		SectionPosition int      //卷 在这一行的位置
+		chapterNum      int      // 章值
+		title           []string //标题值
 	)
 	countSplit := strings.Split(line, "") //切割字符串
 	s := countSplit
@@ -131,11 +132,11 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 
 	// 获取卷值
 	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		volumeNum = getVolumeNum(line) //卷值
+		volumeNum, SectionPosition = getVolumeNum(line) //卷值
 	}
 	// 获取章值
 	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //章值
+		chapterNum, title = getChapterNum(line, SectionPosition) //章值
 	}
 
 	//标题
@@ -147,35 +148,32 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 }
 
 //getVolumeNum 卷号识别并且提取
-func getVolumeNum(s string) int {
+func getVolumeNum(s string) (int, int) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
 		if strings.Contains(v, reel) {
 			result := countSplit[:k+1]         //截取卷前10以内的字符
 			if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return i
+				return i, k
 			} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i)
+				return int(i), k
 			} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i)
+				return int(i), k
 			}
 		}
 	}
-	return 0
+	return 0, 0
 }
 
 //getChapterNum 识别章数并提取
-func getChapterNum(s string) (int, []string) {
+func getChapterNum(s string, SectionPosition int) (int, []string) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
 		for _, vv := range chapter {
 			if strings.Contains(v, vv) {
-				stk := 0 //章节号起始
-				if k >= 10 {
-					stk = k - 10
-				}
-				result := countSplit[stk:k] //截取卷前10以内的字符
+				result := countSplit[SectionPosition:k] //截取卷前10以内的字符
 				title := countSplit[k+1:]
+				//title := countSplit
 				if i := getStringNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 					return i, title
 				}
