@@ -152,7 +152,11 @@ func getVolumeNum(s string) (int, int) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
 		if strings.Contains(v, reel) {
-			result := countSplit[:k+1]         //截取卷前10以内的字符
+
+			result := countSplit[:k+1]                   //截取卷前10以内的字符
+			if getStringNumber(countSplit[k-1:k]) == 0 { //判断卷前面是否是 数字预防title里有卷
+				k = 0
+			}
 			if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 				return i, k
 			} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷

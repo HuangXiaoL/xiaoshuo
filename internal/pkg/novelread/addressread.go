@@ -25,6 +25,7 @@ func NovelRead() {
 	level := 1
 	fileName := listAllFileByName(level, pathSeparator, srcDir)
 	st := time.Now()
+
 	for _, v := range fileName {
 		fileAddres := src + v
 		file, err := os.Open(fileAddres)
