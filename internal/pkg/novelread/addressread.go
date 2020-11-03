@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	"github.com/sirupsen/logrus"
+	"time"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -18,10 +19,12 @@ var (
 //NovelRead 小说读取
 func NovelRead() {
 	src := config.Get().FileAddress.Address
+	//src := "/www/xiaoshuo/Theoriginalnovel/"
 	srcDir := src
 	pathSeparator := string(os.PathSeparator)
 	level := 1
 	fileName := listAllFileByName(level, pathSeparator, srcDir)
+	st := time.Now()
 	for _, v := range fileName {
 		fileAddres := src + v
 		file, err := os.Open(fileAddres)
@@ -29,10 +32,12 @@ func NovelRead() {
 			panic(err)
 		}
 		c, err := SplitChapter(file)
+		useTime := time.Since(st)
 		if err != nil {
 			logrus.Println(err)
 		}
 		fmt.Println(c)
+		logrus.Printf("用时为：%s", useTime)
 	}
 }
 

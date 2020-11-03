@@ -21,6 +21,7 @@
   <component name="ChangeListManager">
     <list default="true" id="ede64b04-92cb-4b07-9153-e5a7c2f96818" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/server/main/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/server/main/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
     </list>
@@ -71,6 +72,41 @@
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="watcher.settings" />
   </component>
+  <component name="RunManager">
+    <configuration name="xiaoshuo" type="docker-deploy" factoryName="docker-image" temporary="true" server-name="Docker">
+      <deployment type="docker-image">
+        <settings>
+          <option name="imageTag" value="golang:latest" />
+          <option name="command" value="" />
+          <option name="containerName" value="" />
+          <option name="entrypoint" value="" />
+          <option name="envVars">
+            <list>
+              <DockerEnvVarImpl>
+                <option name="name" value="GOPROXY" />
+                <option name="value" value="https://goproxy.cn,direct" />
+              </DockerEnvVarImpl>
+            </list>
+          </option>
+          <option name="commandLineOptions" value="" />
+          <option name="volumeBindings">
+            <list>
+              <DockerVolumeBindingImpl>
+                <option name="containerPath" value="/www/xiaoshuo" />
+                <option name="hostPath" value="D:\xiaoshuo" />
+              </DockerVolumeBindingImpl>
+            </list>
+          </option>
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker.xiaoshuo" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="2" />
   </component>
@@ -90,14 +126,30 @@
     <integration-enabled>true</integration-enabled>
   </component>
   <component name="WindowStateProjectService">
+    <state x="654" y="143" key="#Docker_镜像" timestamp="1604387019174">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="654" y="143" key="#Docker_镜像/0.0.1920.1040@0.0.1920.1040" timestamp="1604387019174" />
+    <state x="842" y="435" key="#环境变量" timestamp="1604386933661">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="842" y="435" key="#环境变量/0.0.1920.1040@0.0.1920.1040" timestamp="1604386933661" />
     <state x="614" y="293" key="EditFileWatcherDialog" timestamp="1603881184797">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="614" y="293" key="EditFileWatcherDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1603881184797" />
+    <state x="1040" y="275" key="FileChooserDialogImpl" timestamp="1604386825147">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1040" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1604386825147" />
     <state x="461" y="164" key="SettingsEditor" timestamp="1603881185878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1603881185878" />
+    <state x="867" y="410" width="786" height="219" key="com.intellij.docker.deployment.ui.DockerVolumeBindingsField.v173.dialogSize" timestamp="1604386855469">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="867" y="410" width="786" height="219" key="com.intellij.docker.deployment.ui.DockerVolumeBindingsField.v173.dialogSize/0.0.1920.1040@0.0.1920.1040" timestamp="1604386855469" />
     <state x="793" y="275" key="refactoring.ChangeSignatureDialog" timestamp="1604289304754">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

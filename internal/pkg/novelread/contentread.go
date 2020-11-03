@@ -130,21 +130,14 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	}
 
 	// 获取卷值
-	if i := getNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		volumeNum = getVolumeNum(line) //卷值
-	} else if i := getSimplified(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		volumeNum = getVolumeNum(line)
-	} else if i := getTraditional(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		volumeNum = getVolumeNum(line) //卷值
 	}
 	// 获取章值
-	if i := getNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //章值
-	} else if i := getSimplified(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line) //章值
-	} else if i := getTraditional(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		chapterNum, title = getChapterNum(line) //章值
 	}
+
 	//标题
 	t := ""
 	for _, v := range title {
@@ -183,17 +176,26 @@ func getChapterNum(s string) (int, []string) {
 				}
 				result := countSplit[stk:k] //截取卷前10以内的字符
 				title := countSplit[k+1:]
-				if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+				if i := getStringNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 					return i, title
-				} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return int(i), title
-				} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return int(i), title
 				}
 			}
 		}
 	}
 	return 0, nil
+}
+
+//getStringNumber 获取字符串中的数字
+func getStringNumber(line []string) int {
+	// 获取卷值
+	if i := getNumber(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+		return i
+	} else if i := getSimplified(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+		return int(i)
+	} else if i := getTraditional(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
+		return int(i)
+	}
+	return 0
 }
 
 //getNumber 获取每行的阿拉伯数字

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/novelread"
 
@@ -48,8 +47,8 @@ func initConfig() error {
 	return config.LoadFile(configFile)
 }
 func main() {
-	st := time.Now()
+	//st := time.Now()
 	novelread.NovelRead()
-	useTime := time.Since(st)
-	logrus.Printf("用时为：%s", useTime)
+	//useTime := time.Since(st)
+	//logrus.Printf("用时为：%s", useTime)
 }
