@@ -77,12 +77,13 @@ func SplitChapter(input io.Reader) ([]Chapter, error) {
 
 //lineTextDiscern 行文本识别
 func lineTextDiscern(line string) (string, int, int, string) {
-	b := lineRetractIsContent(line)
 	length := lineLength(line)
+	if length { //长度是否超过80 有就返回为正文
+		return strings.TrimSpace(line), 0, 0, ""
+	}
+	b := lineRetractIsContent(line)
 	//赋值逻辑
 	if b { //是否有缩进 有就返回为正文
-		return strings.TrimSpace(line), 0, 0, ""
-	} else if length { //长度是否超过80 有就返回为正文
 		return strings.TrimSpace(line), 0, 0, ""
 	}
 	// 提取 卷号 ，章节号，章节名称
@@ -113,7 +114,7 @@ func lineLength(line string) bool {
 	return false
 }
 
-//lineFindNumAtChapterAndVolume 在行里查找数字并且返回章卷的值
+//lineFindNumAtChapterAndVolume 在行里查找数字并且返回 章 卷 的值和 章节名称
 func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	var (
 		volumeNum       int      // 卷 值
@@ -147,7 +148,7 @@ func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
 	return volumeNum, chapterNum, t
 }
 
-//getVolumeNum 卷号识别并且提取
+//getVolumeNum 卷号识别并且提取 卷节号 及其 卷位置
 func getVolumeNum(s string) (int, int) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
@@ -169,7 +170,7 @@ func getVolumeNum(s string) (int, int) {
 	return 0, 0
 }
 
-//getChapterNum 识别章数并提取
+//getChapterNum 识别章数并提取 章节号 和章节名称
 func getChapterNum(s string, SectionPosition int) (int, []string) {
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
