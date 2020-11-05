@@ -28,6 +28,8 @@ func NovelRead() {
 
 	for _, v := range fileName {
 		fileAddres := src + v
+		//_, err := os.Open(fileAddres)
+		//fmt.Println(fileAddres)
 		file, err := os.Open(fileAddres)
 		if err != nil {
 			panic(err)
@@ -37,9 +39,14 @@ func NovelRead() {
 		if err != nil {
 			logrus.Println(err)
 		}
-		fmt.Println(c)
+		for _, v := range c {
+			fmt.Println(v.Volume, v.Index, v.Titles)
+		}
+
 		logrus.Printf("用时为：%s", useTime)
 	}
+	useAllTime := time.Since(st)
+	logrus.Printf("用时为：%s", useAllTime)
 }
 
 // listAllFileByName 文件列表

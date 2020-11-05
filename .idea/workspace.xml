@@ -21,7 +21,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ede64b04-92cb-4b07-9153-e5a7c2f96818" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +54,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="DefaultGoTemplateProperty" value="Go Application" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
@@ -69,6 +72,16 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="watcher.settings" />
+  </component>
+  <component name="RunAnythingCache">
+    <myKeys>
+      <visibility group="Grunt tasks" flag="true" />
+      <visibility group="Gulp tasks" flag="true" />
+      <visibility group="Recent projects" flag="true" />
+      <visibility group="Run configurations" flag="true" />
+      <visibility group="npm" flag="true" />
+      <visibility group="yarn" flag="true" />
+    </myKeys>
   </component>
   <component name="RunManager">
     <configuration name="xiaoshuo" type="docker-deploy" factoryName="docker-image" temporary="true" server-name="Docker">
@@ -119,6 +132,9 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
