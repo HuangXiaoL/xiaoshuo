@@ -24,10 +24,8 @@ var (
 	simplified = map[int]string{0: "零", 1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "七", 8: "八", 9: "九", 10: "十", 11: "百", 12: "千", 13: "万"}
 	//繁体
 	traditional = map[int]string{0: "零", 1: "壹", 2: "贰", 3: "叁", 4: "肆", 5: "伍", 6: "陆", 7: "柒", 8: "捌", 9: "玖", 10: "拾", 11: "佰", 12: "仟", 13: "萬"}
-	//屏蔽词
-	shield = map[int]string{0: "京", 1: "两"}
 	//章节 章节集回话 ----- 章节识别关键字
-	chapter = map[int]string{0: "章", 1: "节", 2: "集", 3: "回", 4: "话", 5: " ", 6: "-"}
+	chapter = map[int]string{0: "章", 1: "节", 2: "集", 3: "回", 4: "话", 5: " "}
 	//卷
 	reel = "卷"
 )
@@ -54,6 +52,7 @@ func SplitChapter(input io.Reader) ([]Chapter, error) {
 			continue
 		}
 		cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
+		//lineTextDiscern(scanner.Text())
 
 		//卷号处理，没抓取到就赋值
 		if vnum == 0 {
@@ -76,21 +75,24 @@ func SplitChapter(input io.Reader) ([]Chapter, error) {
 	return o, nil
 }
 
-//lineTextDiscern 行文本识别
-func lineTextDiscern(line string) (string, int, int, string) {
+//lineTextDiscern 行文本识别 （cont 正文，volume 卷号，index 章节，title 章节标题）
+func lineTextDiscern(line string) (cont string, volume int, index int, title string) {
 	length := lineLength(line)
 	if length { //长度是否超过80 有就返回为正文
 		return strings.TrimSpace(line), 0, 0, ""
 	}
 	b := lineRetractIsContent(line)
-	//赋值逻辑
+
 	if b { //是否有缩进 有就返回为正文
 		return strings.TrimSpace(line), 0, 0, ""
 	}
-	// 提取 卷号 ，章节号，章节名称
-	v, ch, t := lineFindNumAtChapterAndVolume(line, 5)
-	return "", v, ch, t
 
+	if !lineGreaterThanSetValueNoNumber(line, 5) { //识别前五位是否有数字，有数字为卷章节，否则为正文
+		return strings.TrimSpace(line), 0, 0, ""
+	}
+	// 提取 卷号 ，章节号，章节名称
+	volume, index, title = lineFindNumAtChapterAndVolume(line)
+	return
 }
 
 //lineRetractIsContent判断是否有缩进是否为正文
@@ -112,202 +114,150 @@ func lineLength(line string) bool {
 	return utf8.RuneCountInString(line) > 80
 }
 
-//lineIsPureNumber 判断这一行是否为纯数字
-func lineIsPureNumber(s []string) bool {
-	line := ""
-I:
-	for _, v := range s {
-		for _, vv := range shield {
-			if v == vv {
-				break I
-			}
-
-		}
-		line = line + v
+//lineGreaterThanSetValueNoNumber 行前五位是否有数字
+func lineGreaterThanSetValueNoNumber(line string, set int) bool {
+	countSplit := strings.Split(line, "") //切割字符串
+	s := countSplit
+	if len(countSplit) >= set { //如果行的长度大于设定值，就截取设定的长度
+		s = countSplit[0:set]
 	}
-	line = strings.TrimSpace(line)
-
-	if line != "" {
-		i, _ := numcn.DecodeToInt64(line)
-		if int(i) != 0 {
+	for _, v := range s {
+		if getTheStringIsNumber(v) != "" { //有预设的识别数字返回为 可能为章节卷
 			return true
-		} else {
-			num, _ := strconv.Atoi(line)
-			if num != 0 {
-				return true
-			}
 		}
 	}
 	return false
 }
 
 //lineFindNumAtChapterAndVolume 在行里查找数字并且返回 章 卷 的值和 章节名称
-func lineFindNumAtChapterAndVolume(line string, seat int) (int, int, string) {
+func lineFindNumAtChapterAndVolume(line string) (int, int, string) {
 	var (
-		volumeNum       int      // 卷 值
-		SectionPosition int      //卷 在这一行的位置
-		chapterNum      int      // 章值
-		title           []string //标题值
+		volumeNum       int    // 卷 值
+		SectionPosition int    //卷 在这一行的位置
+		chapterNum      int    // 章值
+		title           string //标题值
+		isVolume        = true
 	)
 	countSplit := strings.Split(line, "") //切割字符串
 	if len(countSplit) == 0 {             // 行的长度为0 直接返回
 		return 0, 0, ""
 	}
-	s := countSplit
-	if len(countSplit) >= seat { //如果行的长度大于设定值，就截取设定的长度
-		s = countSplit[0:seat]
+	volumeNum, SectionPosition = getVolumeNum(line)                    //卷值
+	chapterNum, title, isVolume = getChapterNum(line, SectionPosition) //章值
+	if !isVolume {                                                     // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
+		volumeNum = 0
 	}
-	if lineIsPureNumber(s) {
-		return 0, getStringNumber(s), ""
-	}
-	// 获取卷值
-	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		volumeNum, SectionPosition = getVolumeNum(line) //卷值
-	}
-	// 获取章值
-	if i := getStringNumber(s); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		chapterNum, title = getChapterNum(line, SectionPosition) //章值
-	}
-	//标题
-	t := ""
-	for _, v := range title {
-		t = t + v
-	}
-
-	return volumeNum, chapterNum, t
+	return volumeNum, chapterNum, title
 }
 
 //getVolumeNum 卷号识别并且提取 卷节号 及其 卷位置
 func getVolumeNum(s string) (int, int) {
+	volumeNum := ""
 	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
-		if strings.Contains(v, reel) {
-
-			result := countSplit[:k] //截取卷前的字符
-			//判断卷前面是否是 数字预防title里有卷， 标题有数字和卷的组合 ，返回卷为0
-			if getStringNumber(result[k-1:k]) == 0 {
-				k = 0
-			}
-			for kk, v := range result {
-				for _, vv := range chapter {
-					if strings.Contains(v, vv) {
-						return 0, kk
-					}
-				}
-			}
-			if i := getNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return i, k
-			} else if i := getSimplified(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i), k
-			} else if i := getTraditional(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-				return int(i), k
-			}
+		if getTheStringIsNumber(v) != "" { // 判断是否是匹配得上数字匹配上了就相加组合在一起
+			volumeNum = volumeNum + v
+		} else if strings.Contains(v, reel) { //未匹配上数字，就匹配是否是 “卷”
+			i := getStringNumber(volumeNum) //卷号
+			return i, k
+		} else { //以上条件都不满足的，收集到的数字 释放掉
+			volumeNum = ""
 		}
+
 	}
 	return 0, 0
 }
 
-//getChapterNum 识别章数并提取 章节号 和章节名称
-func getChapterNum(s string, SectionPosition int) (int, []string) {
-
+//getChapterNum 识别章数并提取 章节号 和章节名称 chapter章节号 titles标题 volume 之前识别的卷号是否可用
+func getChapterNum(s string, SectionPosition int) (chapters int, titles string, volume bool) {
+	chapterNum := ""
 	countSplit := strings.Split(s, "")
+
 	for k, v := range countSplit {
-
+	I:
 		for _, vv := range chapter {
-			if strings.Contains(v, vv) { //是否 有章,节,集，回等.... 做判断
-				sk := k - 1
-				if k > 1 {
-					sk = k - 2
+			if getTheStringIsNumber(v) != "" { // 判断是否是匹配得上数字匹配上了就相加组合在一起
+				chapterNum = chapterNum + v
+				break I
+			} else if v == vv { //是否 有章,节,集，回等.... 做判断
+				if chapters := getStringNumber(chapterNum); chapters > 0 { //返回的数字大于0 有可能是章节目录有卷
+					for _, v := range countSplit[k+1:] {
+						titles = titles + v
+					}
+					volume = true
+					if SectionPosition > k { // 当卷的位置大于章节的位置，认为是标题有卷名称，无效的卷
+						volume = false
+					}
+					return chapters, titles, volume
 				}
-				if getStringNumber(countSplit[sk:k]) == 0 {
-					return 0, nil
-				}
-
-				if SectionPosition > k {
-					SectionPosition = k - k
-				}
-
-				result := countSplit[SectionPosition:k] //截取卷后到章之前的字符
-
-				title := countSplit[k+1:]
-				if i := getStringNumber(result); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-					return i, title
-				}
+			} else {
+				chapterNum = ""
 			}
 		}
 	}
-	return 0, nil
+	return
+}
+
+//getTheStringIsNumber 字符串是否是预设识别需要的数字 预设值 number simplified traditional
+func getTheStringIsNumber(s string) string {
+	for _, v := range number {
+		if s == v {
+			return s
+		}
+
+	}
+	for _, v := range simplified {
+		if s == v {
+			return s
+		}
+
+	}
+	for _, v := range traditional {
+		if s == v {
+			return s
+		}
+
+	}
+	return ""
 }
 
 //getStringNumber 获取字符串中的数字
-func getStringNumber(line []string) int {
+func getStringNumber(line string) int {
 
 	// 获取卷值
 	if i := getNumber(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		return i
 	} else if i := getSimplified(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		return int(i)
+		return i
 	} else if i := getTraditional(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		return int(i)
+		return i
 	}
 	return 0
 }
 
 //getNumber 获取每行的阿拉伯数字
-func getNumber(line []string) int {
-	ss := ""
-	for _, v := range line {
-		for _, vv := range number { //循环数字做匹配
-			if v == vv {
-				ss = ss + v
-			}
-		}
-	}
-
-	if len(ss) != 0 { //每行的数字
-		i, _ := strconv.Atoi(ss)
+func getNumber(line string) int {
+	if len(line) != 0 { //每行的数字
+		i, _ := strconv.Atoi(line)
 		return i
 	}
 	return 0
 }
 
 //getSimplified 获取简写的数字的值
-func getSimplified(line []string) int64 {
-	ss := ""
-	for _, v := range line {
-		for _, vv := range simplified { //循环数字做匹配
-			if v == vv {
-				ss = ss + strings.TrimSpace(v)
-			}
-		}
-		for _, vv := range shield {
-			if v == vv {
-				return 0
-			}
-		}
-	}
-	if utf8.RuneCountInString(ss) != 0 { //每行的数字
-		num, _ := numcn.DecodeToInt64(ss)
-		return num
+func getSimplified(line string) int {
+	if utf8.RuneCountInString(line) != 0 { //每行的数字
+		num, _ := numcn.DecodeToInt64(line)
+		return int(num)
 	}
 	return 0
 }
 
 //getTraditional 获取繁体的数字的值
-func getTraditional(line []string) int64 {
-	ss := ""
-
-	for _, v := range line {
-		for _, vv := range traditional { //循环数字做匹配
-			if v == vv {
-				ss = ss + strings.TrimSpace(v)
-			}
-		}
-	}
-
-	if utf8.RuneCountInString(ss) != 0 { //每行的数字
-		num, _ := numcn.DecodeToInt64(ss)
-		return num
+func getTraditional(line string) int {
+	if utf8.RuneCountInString(line) != 0 { //每行的数字
+		num, _ := numcn.DecodeToInt64(line)
+		return int(num)
 	}
 	return 0
 }
