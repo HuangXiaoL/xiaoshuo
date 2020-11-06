@@ -84,11 +84,9 @@ func lineTextDiscern(line string) (cont string, volume int, index int, title str
 		return strings.TrimSpace(line), 0, 0, ""
 	}
 	b := lineRetractIsContent(line)
-
 	if b { //是否有缩进 有就返回为正文
 		return strings.TrimSpace(line), 0, 0, ""
 	}
-
 	if !lineGreaterThanSetValueNoNumber(line, 5) { //识别前五位是否有数字，有数字为卷章节，否则为正文
 		return strings.TrimSpace(line), 0, 0, ""
 	}
@@ -147,9 +145,9 @@ func lineFindNumAtChapterAndVolume(line string) (int, int, string) {
 	if lineIsPureNumber(countSplit) {
 		return 0, getStringNumber(line), ""
 	}
-	volumeNum, SectionPosition = getVolumeNum(line)                    //卷值
-	chapterNum, title, isVolume = getChapterNum(line, SectionPosition) //章值
-	if !isVolume {                                                     // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
+	volumeNum, SectionPosition = getVolumeNum(countSplit)                    //卷值
+	chapterNum, title, isVolume = getChapterNum(countSplit, SectionPosition) //章值
+	if !isVolume {                                                           // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
 		volumeNum = 0
 	}
 	return volumeNum, chapterNum, title
@@ -177,9 +175,8 @@ func lineIsPureNumber(s []string) bool {
 }
 
 //getVolumeNum 卷号识别并且提取 卷节号 及其 卷位置
-func getVolumeNum(s string) (int, int) {
+func getVolumeNum(countSplit []string) (int, int) {
 	volumeNum := ""
-	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
 		if getTheStringIsNumber(v) != "" { // 判断是否是匹配得上数字匹配上了就相加组合在一起
 			volumeNum = volumeNum + v
@@ -195,9 +192,8 @@ func getVolumeNum(s string) (int, int) {
 }
 
 //getChapterNum 识别章数并提取 章节号 和章节名称 chapter章节号 titles标题 volume 之前识别的卷号是否可用
-func getChapterNum(s string, SectionPosition int) (chapters int, titles string, volume bool) {
+func getChapterNum(countSplit []string, SectionPosition int) (chapters int, titles string, volume bool) {
 	chapterNum := ""
-	countSplit := strings.Split(s, "")
 	for k, v := range countSplit {
 		if getTheStringIsNumber(v) != "" {
 			chapterNum = chapterNum + v

@@ -21,7 +21,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ede64b04-92cb-4b07-9153-e5a7c2f96818" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread_test.go" afterDir="false" />
     </list>

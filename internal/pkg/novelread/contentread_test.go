@@ -19,7 +19,39 @@ var (
 		Line   io.Reader
 		Expect Expect
 	}{
-
+		{
+			Line: strings.NewReader("三十三章 没有前缀的标题"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "没有前缀的标题",
+					Index:  33,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
+		{
+			Line: strings.NewReader("第二十一回 测试使用回的标题"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "测试使用回的标题",
+					Index:  21,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
+		{
+			Line: strings.NewReader("第一章 测试章节"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "测试章节",
+					Index:  1,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
 		{
 			Line: strings.NewReader("十一"),
 			Expect: Expect{
@@ -56,6 +88,18 @@ var (
 			},
 		},
 		{
+			Line: strings.NewReader("第一万节 缓缓道来"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "缓缓道来",
+					Index:  10000,
+					Volume: 0,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
+		{
 			Line: strings.NewReader("第二卷 第五十章 包含了卷的标题"),
 			Expect: Expect{
 				Title: &Chapter{
@@ -68,11 +112,34 @@ var (
 			},
 		},
 		{
+			Line: strings.NewReader("八 只有数字的标题"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "只有数字的标题",
+					Index:  8,
+					Volume: 0,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
+		{
 			Line: strings.NewReader("第四十八-四十九章"),
 			Expect: Expect{
 				Title: &Chapter{
 					Titles: "",
 					Index:  49,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		}, {
+			Line: strings.NewReader("第一章 三卷天书"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "三卷天书",
+					Index:  1,
+					Volume: 0,
 				},
 				OK:  true,
 				Err: nil,
@@ -131,7 +198,6 @@ func TestSplitChapter(t *testing.T) {
 			if ok := reflect.DeepEqual(vv.Volume, v.Expect.Title.Volume); !ok {
 				t.Fatalf("期望得到Volume%v，实际得到Volume%v", v.Expect.Title.Volume, vv.Volume)
 			}
-
 			if ok := reflect.DeepEqual(vv.Index, v.Expect.Title.Index); !ok {
 				t.Fatalf("期望得到Index%v，实际得到Index%v", v.Expect.Title.Index, vv.Index)
 			}
