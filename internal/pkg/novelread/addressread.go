@@ -14,10 +14,12 @@ import (
 var (
 	listFilePrefix = "  "
 	//wg             sync.WaitGroup
+	ch = make(chan Chapter, 10)
 )
 
 //NovelRead 小说读取
 func NovelRead() {
+
 	src := config.Get().FileAddress.Address
 	//src := "/www/xiaoshuo/Theoriginalnovel/"
 	srcDir := src
@@ -34,13 +36,14 @@ func NovelRead() {
 		if err != nil {
 			panic(err)
 		}
-		c, err := SplitChapter(file)
+		//c, err := SplitChapter(file)
+		go SplitChapter(file)
 		//_, _ = SplitChapter(file)
 		useTime := time.Since(st)
-		if err != nil {
-			logrus.Println(err)
-		}
-		for _, v := range c {
+		//if err != nil {
+		//	logrus.Println(err)
+		//}
+		for v := range ch {
 			fmt.Println(v.Volume, v.Index, v.Titles)
 		}
 
