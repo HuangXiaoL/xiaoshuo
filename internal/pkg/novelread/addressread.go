@@ -35,6 +35,7 @@ func NovelRead() {
 			panic(err)
 		}
 		c, err := SplitChapter(file)
+		//_, _ = SplitChapter(file)
 		useTime := time.Since(st)
 		if err != nil {
 			logrus.Println(err)

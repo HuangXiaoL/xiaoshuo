@@ -41,17 +41,18 @@ type Chapter struct {
 //SplitChapter 文本流入口
 func SplitChapter(input io.Reader) ([]Chapter, error) {
 	var (
-		conts     string
+		//conts     string
+		volumeNum int
 		o         = []Chapter{}
 		c         = Chapter{}
-		volumeNum int
 	)
 	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			continue
 		}
-		cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
+		//cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
+		_, vnum, cnum, t := lineTextDiscern(scanner.Text())
 		//lineTextDiscern(scanner.Text())
 
 		//卷号处理，没抓取到就赋值
@@ -62,14 +63,15 @@ func SplitChapter(input io.Reader) ([]Chapter, error) {
 		//else if vnum == volumeNum || vnum == volumeNum+2 || vnum == volumeNum+1 { //抓取到了判断值是否合理，是否是同卷，或者是下一卷或者第一卷的卷号没写
 		//	volumeNum = vnum
 		//}
-		conts = conts + cont
+		//conts = conts + cont
 		if cnum != 0 {
 			c.Titles = strings.TrimSpace(strings.Trim(t, "\n\r"))
 			c.Volume = volumeNum
 			c.Index = cnum
-			c.Content = conts
-			conts = ""
+			//c.Content = conts
+			//conts = ""
 			o = append(o, c)
+			//fmt.Println(c.Volume, c.Index, c.Titles)
 		}
 	}
 	return o, nil
@@ -111,7 +113,7 @@ func lineRetractIsContent(line string) bool {
 
 //lineLengthIsContent 根据行的长度判断是否正文
 func lineLength(line string) bool {
-	return utf8.RuneCountInString(line) > 80
+	return len(line) > 240
 }
 
 //lineGreaterThanSetValueNoNumber 行前五位是否有数字
@@ -142,12 +144,36 @@ func lineFindNumAtChapterAndVolume(line string) (int, int, string) {
 	if len(countSplit) == 0 {             // 行的长度为0 直接返回
 		return 0, 0, ""
 	}
+	if lineIsPureNumber(countSplit) {
+		return 0, getStringNumber(line), ""
+	}
 	volumeNum, SectionPosition = getVolumeNum(line)                    //卷值
 	chapterNum, title, isVolume = getChapterNum(line, SectionPosition) //章值
 	if !isVolume {                                                     // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
 		volumeNum = 0
 	}
 	return volumeNum, chapterNum, title
+}
+
+//lineIsPureNumber 判断这一行是否为纯数字
+func lineIsPureNumber(s []string) bool {
+	line := ""
+	line = strings.TrimSpace(line)
+	for _, v := range s {
+		line = line + v
+	}
+	if line != "" {
+		i, _ := numcn.DecodeToInt64(line)
+		if int(i) != 0 {
+			return true
+		} else {
+			num, _ := strconv.Atoi(line)
+			if num != 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 //getVolumeNum 卷号识别并且提取 卷节号 及其 卷位置
@@ -172,41 +198,39 @@ func getVolumeNum(s string) (int, int) {
 func getChapterNum(s string, SectionPosition int) (chapters int, titles string, volume bool) {
 	chapterNum := ""
 	countSplit := strings.Split(s, "")
-
 	for k, v := range countSplit {
-	I:
-		for _, vv := range chapter {
-			if getTheStringIsNumber(v) != "" { // 判断是否是匹配得上数字匹配上了就相加组合在一起
-				chapterNum = chapterNum + v
-				break I
-			} else if v == vv { //是否 有章,节,集，回等.... 做判断
-				if chapters := getStringNumber(chapterNum); chapters > 0 { //返回的数字大于0 有可能是章节目录有卷
-					for _, v := range countSplit[k+1:] {
-						titles = titles + v
+		if getTheStringIsNumber(v) != "" {
+			chapterNum = chapterNum + v
+		} else {
+			for _, vv := range chapter {
+				if v == vv {
+					if chapters := getStringNumber(chapterNum); chapters > 0 {
+						for _, v := range countSplit[k+1:] {
+							titles = titles + v
+						}
+						volume = true
+						if SectionPosition > k { // 当卷的位置大于章节的位置，认为是标题有卷名称，无效的卷
+							volume = false
+						}
+						return chapters, titles, volume
 					}
-					volume = true
-					if SectionPosition > k { // 当卷的位置大于章节的位置，认为是标题有卷名称，无效的卷
-						volume = false
-					}
-					return chapters, titles, volume
 				}
-			} else {
-				chapterNum = ""
 			}
+			chapterNum = ""
 		}
 	}
+
 	return
 }
 
 //getTheStringIsNumber 字符串是否是预设识别需要的数字 预设值 number simplified traditional
 func getTheStringIsNumber(s string) string {
-	for _, v := range number {
+	for _, v := range simplified {
 		if s == v {
 			return s
 		}
-
 	}
-	for _, v := range simplified {
+	for _, v := range number {
 		if s == v {
 			return s
 		}
@@ -223,7 +247,6 @@ func getTheStringIsNumber(s string) string {
 
 //getStringNumber 获取字符串中的数字
 func getStringNumber(line string) int {
-
 	// 获取卷值
 	if i := getNumber(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
 		return i

@@ -19,94 +19,24 @@ var (
 		Line   io.Reader
 		Expect Expect
 	}{
-		{
-			Line: strings.NewReader("第四卷 北海雾 第一章 朝议（一）"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "朝议（一）",
-					Index:  1,
-					Volume: 4,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("第一章 测试章节"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "测试章节",
-					Index:  1,
-					Volume: 0,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("第一章 三卷天书"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "三卷天书",
-					Index:  1,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("第二十一回 测试使用回的标题"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "测试使用回的标题",
-					Index:  21,
-					Volume: 0,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("三十三章 没有前缀的标题"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "没有前缀的标题",
-					Index:  33,
-					Volume: 0,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("八 只有数字的标题"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "只有数字的标题",
-					Index:  8,
-					Volume: 0,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
-		{
-			Line: strings.NewReader("第一万节 缓缓道来"),
-			Expect: Expect{
-				Title: &Chapter{
-					Titles: "缓缓道来",
-					Index:  10000,
-				},
-				OK:  true,
-				Err: nil,
-			},
-		},
+
 		{
 			Line: strings.NewReader("十一"),
 			Expect: Expect{
 				Title: &Chapter{
 					Titles: "",
 					Index:  11,
+				},
+				OK:  true,
+				Err: nil,
+			},
+		},
+		{
+			Line: strings.NewReader("十 一"),
+			Expect: Expect{
+				Title: &Chapter{
+					Titles: "一",
+					Index:  10,
 				},
 				OK:  true,
 				Err: nil,
