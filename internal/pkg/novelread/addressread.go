@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
@@ -13,13 +14,11 @@ import (
 
 var (
 	listFilePrefix = "  "
-	//wg             sync.WaitGroup
-	ch = make(chan Chapter, 10)
 )
 
 //NovelRead 小说读取
 func NovelRead() {
-
+	wgr := sync.WaitGroup{}
 	src := config.Get().FileAddress.Address
 	//src := "/www/xiaoshuo/Theoriginalnovel/"
 	srcDir := src
@@ -36,21 +35,32 @@ func NovelRead() {
 		if err != nil {
 			panic(err)
 		}
-		//c, err := SplitChapter(file)
-		go SplitChapter(file)
-		//_, _ = SplitChapter(file)
-		useTime := time.Since(st)
-		//if err != nil {
-		//	logrus.Println(err)
-		//}
-		for v := range ch {
-			fmt.Println(v.Volume, v.Index, v.Titles)
+		// 小说读取
+		c, err := SplitChapter(file)
+		if err != nil { //读取错误
+			logrus.Println(err)
 		}
+		wgr.Add(1)
+		go getBookCatalogue(c, &wgr)
 
+		wgr.Wait()
+		useTime := time.Since(st)
 		logrus.Printf("用时为：%s", useTime)
 	}
 	useAllTime := time.Since(st)
 	logrus.Printf("用时为：%s", useAllTime)
+}
+func getBookCatalogue(c chan Chapter, wgr *sync.WaitGroup) {
+	defer wgr.Done()
+	for v := range c {
+		fmt.Println(v.Volume, v.Index, v.Titles)
+		//select {
+		//case v := <-c:
+		//	fmt.Println(v.Volume, v.Index, v.Titles)
+		//}
+	}
+	return
+
 }
 
 // listAllFileByName 文件列表

@@ -4,11 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/novelread"
+	"time"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/connection"
+
+	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/novelread"
 	"github.com/sirupsen/logrus"
 )
 
@@ -46,9 +47,10 @@ func initConfig() error {
 	}
 	return config.LoadFile(configFile)
 }
+
 func main() {
-	//st := time.Now()
+	st := time.Now()
 	novelread.NovelRead()
-	//useTime := time.Since(st)
-	//logrus.Printf("用时为：%s", useTime)
+	useTime := time.Since(st)
+	logrus.Printf("用时为：%s", useTime)
 }

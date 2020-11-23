@@ -15,4 +15,5 @@ require (
 	github.com/pkumza/numcn v1.0.0
 	github.com/sirupsen/logrus v1.7.0
 	golang.org/x/sys v0.0.0-20201027140754-0fcbb8f4928c // indirect
+	golang.org/x/tour v0.0.0-20201106234542-4bb7d986198d
 )

@@ -21,6 +21,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ede64b04-92cb-4b07-9153-e5a7c2f96818" name="默认的" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/server/main/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/server/main/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/addressread.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/pkg/novelread/contentread.go" afterDir="false" />
     </list>
@@ -62,7 +65,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../gostudy/src" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -151,10 +154,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="614" y="293" key="EditFileWatcherDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1603881184797" />
-    <state x="1040" y="275" key="FileChooserDialogImpl" timestamp="1604386825147">
+    <state x="1040" y="275" key="FileChooserDialogImpl" timestamp="1605756124047">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="1040" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1604386825147" />
+    <state x="1040" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1605756124047" />
     <state x="461" y="164" key="SettingsEditor" timestamp="1603881185878">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -163,9 +166,9 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="867" y="410" width="786" height="219" key="com.intellij.docker.deployment.ui.DockerVolumeBindingsField.v173.dialogSize/0.0.1920.1040@0.0.1920.1040" timestamp="1604386855469" />
-    <state x="793" y="275" key="refactoring.ChangeSignatureDialog" timestamp="1604289304754">
+    <state x="793" y="275" key="refactoring.ChangeSignatureDialog" timestamp="1606106388168">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="793" y="275" key="refactoring.ChangeSignatureDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1604289304754" />
+    <state x="793" y="275" key="refactoring.ChangeSignatureDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1606106388168" />
   </component>
 </project>

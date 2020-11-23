@@ -2,9 +2,11 @@ package novelread
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
@@ -39,19 +41,22 @@ type Chapter struct {
 }
 
 //SplitChapter 文本流入口
-func SplitChapter(input io.Reader) {
+func SplitChapter(input io.Reader) (chan Chapter, error) {
 	var (
-		conts     string
+		//conts     string
 		volumeNum int
 		c         = Chapter{}
+		ch        = make(chan Chapter, 1)
+		wgw       sync.WaitGroup
 	)
+	//defer close(ch)
 	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			continue
 		}
-		cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
-		//_, vnum, cnum, t := lineTextDiscern(scanner.Text())
+		//cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
+		_, vnum, cnum, t := lineTextDiscern(scanner.Text())
 		//lineTextDiscern(scanner.Text())
 
 		//卷号处理，没抓取到就赋值
@@ -62,19 +67,28 @@ func SplitChapter(input io.Reader) {
 		//else if vnum == volumeNum || vnum == volumeNum+2 || vnum == volumeNum+1 { //抓取到了判断值是否合理，是否是同卷，或者是下一卷或者第一卷的卷号没写
 		//	volumeNum = vnum
 		//}
-		conts = conts + cont
+		//conts = conts + cont
 		if cnum != 0 {
 			c.Titles = strings.TrimSpace(strings.Trim(t, "\n\r"))
 			c.Volume = volumeNum
 			c.Index = cnum
-			c.Content = conts
-			conts = ""
+			//c.Content = conts
+			//conts = ""
 			//fmt.Println(c.Volume, c.Index, c.Titles)
-			ch <- c
-
+			wgw.Add(1)
+			go func(c Chapter, ch chan Chapter) {
+				defer wgw.Done()
+				ch <- c
+			}(c, ch)
 		}
 	}
-	close(ch)
+	go func() {
+		fmt.Println("Wait")
+		wgw.Wait()
+		close(ch)
+
+	}()
+	return ch, nil
 }
 
 //lineTextDiscern 行文本识别 （cont 正文，volume 卷号，index 章节，title 章节标题）
