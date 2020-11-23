@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/HuangXiaoL/xiaoshuo/internal/pkg/config"
@@ -18,7 +17,6 @@ var (
 
 //NovelRead 小说读取
 func NovelRead() {
-	wgr := sync.WaitGroup{}
 	src := config.Get().FileAddress.Address
 	//src := "/www/xiaoshuo/Theoriginalnovel/"
 	srcDir := src
@@ -40,27 +38,14 @@ func NovelRead() {
 		if err != nil { //读取错误
 			logrus.Println(err)
 		}
-		wgr.Add(1)
-		go getBookCatalogue(c, &wgr)
-
-		wgr.Wait()
+		for v := range c {
+			fmt.Println(v.Volume, v.Index, v.Titles)
+		}
 		useTime := time.Since(st)
 		logrus.Printf("用时为：%s", useTime)
 	}
 	useAllTime := time.Since(st)
 	logrus.Printf("用时为：%s", useAllTime)
-}
-func getBookCatalogue(c chan Chapter, wgr *sync.WaitGroup) {
-	defer wgr.Done()
-	for v := range c {
-		fmt.Println(v.Volume, v.Index, v.Titles)
-		//select {
-		//case v := <-c:
-		//	fmt.Println(v.Volume, v.Index, v.Titles)
-		//}
-	}
-	return
-
 }
 
 // listAllFileByName 文件列表
