@@ -2,6 +2,8 @@ package novelread
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -38,13 +40,19 @@ type Chapter struct {
 	Content string
 }
 
+// ChapterPayload 章节解析结果
+type ChapterPayload struct {
+	Chapter Chapter
+	Err     error
+}
+
 //SplitChapter 文本流入口
-func SplitChapter(input io.Reader) (chan Chapter, error) {
+func SplitChapter(ctx context.Context, input io.Reader) chan ChapterPayload {
 	var (
-		//conts     string
+		conts     string
 		volumeNum int
-		c         = Chapter{}
-		ch        = make(chan Chapter, 1)
+		c         = ChapterPayload{}
+		ch        = make(chan ChapterPayload, 1)
 	)
 	//defer close(ch)
 	scanner := bufio.NewScanner(input)
@@ -55,7 +63,10 @@ func SplitChapter(input io.Reader) (chan Chapter, error) {
 				continue
 			}
 			//cont, vnum, cnum, t := lineTextDiscern(scanner.Text())
-			_, vnum, cnum, t := lineTextDiscern(scanner.Text())
+			cont, vnum, cnum, t, err := lineTextDiscern(scanner.Text())
+			if err != nil {
+				c.Err = err
+			}
 			//lineTextDiscern(scanner.Text())
 
 			//卷号处理，没抓取到就赋值
@@ -66,37 +77,41 @@ func SplitChapter(input io.Reader) (chan Chapter, error) {
 			//else if vnum == volumeNum || vnum == volumeNum+2 || vnum == volumeNum+1 { //抓取到了判断值是否合理，是否是同卷，或者是下一卷或者第一卷的卷号没写
 			//	volumeNum = vnum
 			//}
-			//conts = conts + cont
+			conts = conts + cont
 			if cnum != 0 {
-				c.Titles = strings.TrimSpace(strings.Trim(t, "\n\r"))
-				c.Volume = volumeNum
-				c.Index = cnum
-				//c.Content = conts
-				//conts = ""
+				c.Chapter.Titles = strings.TrimSpace(strings.Trim(t, "\n\r"))
+				c.Chapter.Volume = volumeNum
+				c.Chapter.Index = cnum
+				c.Chapter.Content = conts
+				conts = ""
 				//fmt.Println(c.Volume, c.Index, c.Titles)
-				ch <- c
+				select {
+				case <-ctx.Done():
+					return // return结束该goroutine，防止泄露
+				case ch <- c:
+				}
 			}
 		}
 	}()
 
-	return ch, nil
+	return ch
 }
 
 //lineTextDiscern 行文本识别 （cont 正文，volume 卷号，index 章节，title 章节标题）
-func lineTextDiscern(line string) (cont string, volume int, index int, title string) {
+func lineTextDiscern(line string) (cont string, volume int, index int, title string, err error) {
 	length := lineLength(line)
 	if length { //长度是否超过80 有就返回为正文
-		return strings.TrimSpace(line), 0, 0, ""
+		return strings.TrimSpace(line), 0, 0, "", nil
 	}
 	b := lineRetractIsContent(line)
 	if b { //是否有缩进 有就返回为正文
-		return strings.TrimSpace(line), 0, 0, ""
+		return strings.TrimSpace(line), 0, 0, "", nil
 	}
 	if !lineGreaterThanSetValueNoNumber(line, 5) { //识别前五位是否有数字，有数字为卷章节，否则为正文
-		return strings.TrimSpace(line), 0, 0, ""
+		return strings.TrimSpace(line), 0, 0, "", nil
 	}
 	// 提取 卷号 ，章节号，章节名称
-	volume, index, title = lineFindNumAtChapterAndVolume(line)
+	volume, index, title, err = lineFindNumAtChapterAndVolume(line)
 	return
 }
 
@@ -135,69 +150,90 @@ func lineGreaterThanSetValueNoNumber(line string, set int) bool {
 }
 
 //lineFindNumAtChapterAndVolume 在行里查找数字并且返回 章 卷 的值和 章节名称
-func lineFindNumAtChapterAndVolume(line string) (int, int, string) {
+func lineFindNumAtChapterAndVolume(line string) (int, int, string, error) {
 	var (
 		volumeNum       int    // 卷 值
 		SectionPosition int    //卷 在这一行的位置
 		chapterNum      int    // 章值
 		title           string //标题值
 		isVolume        = true
+		err             = errors.New("")
 	)
 	countSplit := strings.Split(line, "") //切割字符串
 	if len(countSplit) == 0 {             // 行的长度为0 直接返回
-		return 0, 0, ""
+		return 0, 0, "", nil
 	}
-	if lineIsPureNumber(countSplit) {
-		return 0, getStringNumber(line), ""
+	if b, err := lineIsPureNumber(countSplit); b {
+		if err == nil {
+			n, err := getStringNumber(line)
+			if err == nil {
+				return 0, n, "", nil
+			} else {
+				return 0, 0, "", err
+			}
+		} else {
+			return 0, 0, "", err
+		}
+
 	}
-	volumeNum, SectionPosition = getVolumeNum(countSplit)                    //卷值
-	chapterNum, title, isVolume = getChapterNum(countSplit, SectionPosition) //章值
-	if !isVolume {                                                           // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
+	volumeNum, SectionPosition, err = getVolumeNum(countSplit)                    //卷值
+	chapterNum, title, isVolume, err = getChapterNum(countSplit, SectionPosition) //章值
+	if !isVolume {                                                                // 当识别到的卷在章节之后的时候，就不可使用该卷值，设置为0
 		volumeNum = 0
 	}
-	return volumeNum, chapterNum, title
+	if err != nil {
+		return 0, 0, "", err
+	}
+	return volumeNum, chapterNum, title, nil
 }
 
 //lineIsPureNumber 判断这一行是否为纯数字
-func lineIsPureNumber(s []string) bool {
+func lineIsPureNumber(s []string) (bool, error) {
 	line := ""
 	line = strings.TrimSpace(line)
 	for _, v := range s {
 		line = line + v
 	}
 	if line != "" {
-		i, _ := numcn.DecodeToInt64(line)
+		i, err := numcn.DecodeToInt64(line)
+		if err != nil {
+			return false, err
+		}
 		if int(i) != 0 {
-			return true
+			return true, nil
 		} else {
 			num, _ := strconv.Atoi(line)
 			if num != 0 {
-				return true
+				return true, nil
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 //getVolumeNum 卷号识别并且提取 卷节号 及其 卷位置
-func getVolumeNum(countSplit []string) (int, int) {
+func getVolumeNum(countSplit []string) (int, int, error) {
 	volumeNum := ""
+	err := errors.New("")
 	for k, v := range countSplit {
 		if getTheStringIsNumber(v) != "" { // 判断是否是匹配得上数字匹配上了就相加组合在一起
 			volumeNum = volumeNum + v
 		} else if strings.Contains(v, reel) { //未匹配上数字，就匹配是否是 “卷”
-			i := getStringNumber(volumeNum) //卷号
-			return i, k
+			i, err := getStringNumber(volumeNum) //卷号
+			if err == nil {
+				return i, k, nil
+			}
+
 		} else { //以上条件都不满足的，收集到的数字 释放掉
 			volumeNum = ""
 		}
 
 	}
-	return 0, 0
+	return 0, 0, err
 }
 
 //getChapterNum 识别章数并提取 章节号 和章节名称 chapter章节号 titles标题 volume 之前识别的卷号是否可用
-func getChapterNum(countSplit []string, SectionPosition int) (chapters int, titles string, volume bool) {
+func getChapterNum(countSplit []string, SectionPosition int) (chapters int, titles string, volume bool, err error) {
 	chapterNum := ""
 	for k, v := range countSplit {
 		if getTheStringIsNumber(v) != "" {
@@ -205,7 +241,7 @@ func getChapterNum(countSplit []string, SectionPosition int) (chapters int, titl
 		} else {
 			for _, vv := range chapter {
 				if v == vv {
-					if chapters := getStringNumber(chapterNum); chapters > 0 {
+					if chapters, err := getStringNumber(chapterNum); chapters > 0 {
 						for _, v := range countSplit[k+1:] {
 							titles = titles + v
 						}
@@ -213,7 +249,9 @@ func getChapterNum(countSplit []string, SectionPosition int) (chapters int, titl
 						if SectionPosition > k { // 当卷的位置大于章节的位置，认为是标题有卷名称，无效的卷
 							volume = false
 						}
-						return chapters, titles, volume
+						if err == nil {
+							return chapters, titles, volume, nil
+						}
 					}
 				}
 			}
@@ -247,16 +285,22 @@ func getTheStringIsNumber(s string) string {
 }
 
 //getStringNumber 获取字符串中的数字
-func getStringNumber(line string) int {
-	// 获取卷值
-	if i := getNumber(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		return i
-	} else if i := getSimplified(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		return i
-	} else if i := getTraditional(line); i > 0 { //返回的数字大于0 有可能是章节目录有卷
-		return i
+func getStringNumber(line string) (i int, err error) {
+
+	if i := getNumber(line); i > 0 {
+		return i, nil
 	}
-	return 0
+	if i, err = getSimplified(line); i > 0 {
+		return i, nil
+	} else if err != nil {
+		return
+	}
+	if i, err = getTraditional(line); i > 0 {
+		return i, nil
+	} else if err != nil {
+		return
+	}
+	return
 }
 
 //getNumber 获取每行的阿拉伯数字
@@ -269,19 +313,26 @@ func getNumber(line string) int {
 }
 
 //getSimplified 获取简写的数字的值
-func getSimplified(line string) int {
+func getSimplified(line string) (int, error) {
 	if utf8.RuneCountInString(line) != 0 { //每行的数字
-		num, _ := numcn.DecodeToInt64(line)
-		return int(num)
+		num, err := numcn.DecodeToInt64(line)
+		//err = errors.New("错误")
+		if err != nil {
+			return 0, err
+		}
+		return int(num), nil
 	}
-	return 0
+	return 0, nil
 }
 
 //getTraditional 获取繁体的数字的值
-func getTraditional(line string) int {
+func getTraditional(line string) (int, error) {
 	if utf8.RuneCountInString(line) != 0 { //每行的数字
-		num, _ := numcn.DecodeToInt64(line)
-		return int(num)
+		num, err := numcn.DecodeToInt64(line)
+		if err != nil {
+			return 0, err
+		}
+		return int(num), nil
 	}
-	return 0
+	return 0, nil
 }

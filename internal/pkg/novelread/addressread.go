@@ -1,6 +1,7 @@
 package novelread
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,8 @@ var (
 
 //NovelRead 小说读取
 func NovelRead() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // 当我们取完需要的整数后调用cancel
 	src := config.Get().FileAddress.Address
 	//src := "/www/xiaoshuo/Theoriginalnovel/"
 	srcDir := src
@@ -24,7 +27,6 @@ func NovelRead() {
 	level := 1
 	fileName := listAllFileByName(level, pathSeparator, srcDir)
 	st := time.Now()
-
 	for _, v := range fileName {
 		fileAddres := src + v
 		//_, err := os.Open(fileAddres)
@@ -34,13 +36,14 @@ func NovelRead() {
 			panic(err)
 		}
 		// 小说读取
-		c, err := SplitChapter(file)
-		if err != nil { //读取错误
-			logrus.Println(err)
+		for v := range SplitChapter(ctx, file) {
+			if v.Err != nil {
+				fmt.Println(v.Err)
+				continue
+			}
+			fmt.Println(v.Chapter.Volume, v.Chapter.Index, v.Chapter.Titles)
 		}
-		for v := range c {
-			fmt.Println(v.Volume, v.Index, v.Titles)
-		}
+		cancel()
 		useTime := time.Since(st)
 		logrus.Printf("用时为：%s", useTime)
 	}
