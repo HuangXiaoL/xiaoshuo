@@ -39,7 +39,7 @@ func NovelRead() {
 		for v := range SplitChapter(ctx, file) {
 			if v.Err != nil {
 				fmt.Println(v.Err)
-				continue
+				cancel()
 			}
 			fmt.Println(v.Chapter.Volume, v.Chapter.Index, v.Chapter.Titles)
 		}
